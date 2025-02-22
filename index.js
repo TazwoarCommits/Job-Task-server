@@ -26,6 +26,14 @@ async function run() {
 
     const tasksCollection = client.db("To-Do").collection("Tasks") ; 
 
+    app.get("/tasks/user" , async(req, res) => {
+      const email = req.query.email ;
+      console.log(email);
+      const filter = {author : email} ;
+      const result = await tasksCollection.find(filter).toArray();
+      res.send(result)
+    })
+
     app.post("/tasks" , async (req , res) => {
       const newTask = req.body ; 
     //   console.log(newTask);
