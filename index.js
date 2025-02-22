@@ -1,7 +1,7 @@
 import express from "express"
 import cors from "cors"
 import 'dotenv/config'
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -28,10 +28,33 @@ async function run() {
 
     app.get("/tasks/user" , async(req, res) => {
       const email = req.query.email ;
-      console.log(email);
+    //   console.log(email);
       const filter = {author : email} ;
       const result = await tasksCollection.find(filter).toArray();
       res.send(result)
+    })
+
+    app.get("/tasks/:id" , async (req, res) => {
+        const id = req.params.id ;
+        const filter = {_id : new ObjectId(id)} ;
+        const result = await tasksCollection.findOne(filter) ;
+        res.send(result) ;
+    })
+
+    app.patch("/tasks/:id" , async (req , res) => {
+        const id = req.params.id ; 
+        const filter = {_id : new ObjectId(id)} ;
+        const options = {upsert : true} ;
+        const updatedDoc = req.body ;
+        // console.log(updatedDoc , id);
+        const task = {
+            $set : {
+               title : updatedDoc.updatedTitle, 
+               description : updatedDoc.updatedDescription
+            }
+        }
+        const result = await tasksCollection.updateOne(filter, task , options)
+        res.send(result)
     })
 
     app.post("/tasks" , async (req , res) => {
@@ -40,6 +63,13 @@ async function run() {
       const result = await tasksCollection.insertOne(newTask)
     //   console.log(result);
       res.send(result)
+    })
+
+    app.delete("/tasks/:id" , async (req, res) => {
+        const id = req.params.id ; 
+        const filter = {_id : new ObjectId(id)}
+        const result = await tasksCollection.deleteOne(filter) ;
+        res.send(result)
     })
 
 
