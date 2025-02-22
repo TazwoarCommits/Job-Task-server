@@ -26,9 +26,11 @@ async function run() {
 
     const tasksCollection = client.db("To-Do").collection("Tasks") ; 
 
-    app.post("/post" , async (req , res) => {
+    app.post("/tasks" , async (req , res) => {
       const newTask = req.body ; 
+    //   console.log(newTask);
       const result = await tasksCollection.insertOne(newTask)
+    //   console.log(result);
       res.send(result)
     })
 
@@ -43,7 +45,7 @@ async function run() {
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
-        await client.close();
+        // await client.close();
     }
 }
 run().catch(console.dir);
