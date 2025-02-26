@@ -1,10 +1,21 @@
 import express from "express"
 import cors from "cors"
+import { createServer } from "http";
+import { Server } from "socket.io";
 import 'dotenv/config'
 import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+const server = createServer(app);
+
+const io = new Server(server, {
+    cors: {
+      origin: "http://localhost:5173", // Your frontend URL
+      methods: ["GET", "POST", "PATCH", "DELETE"], // Add PATCH & DELETE
+    },
+  });
 
 app.use(cors());
 app.use(express.json());
@@ -24,11 +35,13 @@ const client = new MongoClient(uri, {
 
 async function run() {
 
+  try {
+
     const tasksCollection = client.db("To-Do").collection("Tasks") ; 
 
     app.get("/tasks/user" , async(req, res) => {
       const email = req.query.email ;
-    //   console.log(email);
+      // console.log(email);
       const filter = {author : email} ;
       const result = await tasksCollection.find(filter).toArray();
       res.send(result)
@@ -54,7 +67,21 @@ async function run() {
             }
         }
         const result = await tasksCollection.updateOne(filter, task , options)
-        res.send(result)
+        res.send(result) ;
+    })
+
+    app.patch("/updateCategory/:id" , async (req, res) => {
+      const id = req.params.id ;
+      const {category} = req.body ;
+      const filter = {_id : new ObjectId(id)} ;
+      const newCategory = {
+        $set : {
+          category : category
+        }
+      }
+      // console.log(filter, id, category, newCategory);
+      const result = await tasksCollection.updateOne(filter, newCategory)
+      res.send(result) ;
     })
 
     app.post("/tasks" , async (req , res) => {
@@ -75,12 +102,12 @@ async function run() {
 
 
 
-    try {
+    
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
